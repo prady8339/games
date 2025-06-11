@@ -1,0 +1,156 @@
+#include <bits/stdc++.h>
+#include <cinttypes>
+#ifdef _WIN32
+#include <windows.h>
+#else
+#include <unistd.h>
+#endif
+
+#define RESET "\033[0m"
+#define BOLD "\033[1m"
+
+using namespace std;
+
+// Theme color codes
+string BLACK_BG = "\033[48;5;17m";  // Default navy
+string WHITE_BG = "\033[48;5;153m"; // Default light cyan
+
+enum Material { PAWN, BISHOP, KNIGHT, ROOK, QUEEN, KING, NA };
+enum MaterialColor { WHITE, BLACK };
+
+class Block {
+public:
+  char x, y;
+  Material m;
+  MaterialColor c;
+  Block(char x, char y, MaterialColor c, Material m) {
+    this->x = x;
+    this->y = y;
+    this->m = m;
+    this->c = c;
+  }
+};
+
+class Helper {
+public:
+  static void resetGame(vector<vector<Block *>> &board) {
+    int n = 8;
+    for (int j = 0; j < n; j++) {
+      board[7][j]->m = (j == 0 || j == 7)   ? ROOK
+                       : (j == 1 || j == 6) ? KNIGHT
+                       : (j == 2 || j == 5) ? BISHOP
+                       : (j == 3)           ? QUEEN
+                                            : KING;
+      board[7][j]->c = WHITE;
+      board[6][j]->m = PAWN;
+      board[6][j]->c = WHITE;
+      board[0][j]->m = (j == 0 || j == 7)   ? ROOK
+                       : (j == 1 || j == 6) ? KNIGHT
+                       : (j == 2 || j == 5) ? BISHOP
+                       : (j == 3)           ? QUEEN
+                                            : KING;
+      board[0][j]->c = BLACK;
+      board[1][j]->m = PAWN;
+      board[1][j]->c = BLACK;
+    }
+  }
+
+  static string getUniCodes(MaterialColor c, Material m) {
+    switch (m) {
+    case KING:
+      return c == WHITE ? "\u2654" : "\u265A";
+    case QUEEN:
+      return c == WHITE ? "\u2655" : "\u265B";
+    case ROOK:
+      return c == WHITE ? "\u2656" : "\u265C";
+    case BISHOP:
+      return c == WHITE ? "\u2657" : "\u265D";
+    case KNIGHT:
+      return c == WHITE ? "\u2658" : "\u265E";
+    case PAWN:
+      return c == WHITE ? "\u2659" : "\u265F";
+    default:
+      return " ";
+    }
+  }
+
+  static void chooseTheme(int theme) {
+    switch (theme) {
+    case 1:                        // Classic Green
+      BLACK_BG = "\033[48;5;22m";  // Forest green
+      WHITE_BG = "\033[48;5;230m"; // Beige
+      break;
+    case 2:                        // Elegant Blue
+      BLACK_BG = "\033[48;5;17m";  // Navy
+      WHITE_BG = "\033[48;5;153m"; // Light cyan
+      break;
+    case 3:                        // Wooden Style
+      BLACK_BG = "\033[48;5;94m";  // Brown
+      WHITE_BG = "\033[48;5;230m"; // Ivory
+      break;
+    default:
+      cout << "Invalid theme. Using default (Blue)." << endl;
+    }
+  }
+};
+
+void clearScreen() {
+#ifdef _WIN32
+  system("cls");
+#else
+  system("clear");
+#endif
+}
+
+int main() {
+  int themeChoice = 3;
+  // cout << "Select a board theme:\n";
+  // cout << "1. Classic Green\n2. Elegant Blue\n3. Wooden Style\n";
+  // cout << "Enter theme number: ";
+  // cin >> themeChoice;
+  Helper::chooseTheme(themeChoice);
+
+  int n = 8;
+  vector<vector<Block *>> board(n, vector<Block *>(8));
+  for (int i = 0; i < n; i++)
+    for (int j = 0; j < n; j++)
+      board[i][j] = new Block(i, j, WHITE, NA);
+
+  Helper::resetGame(board);
+  bool gameOver = false;
+  bool turn = 1;
+  while (!gameOver) {
+    string move;
+    if (turn) {
+      cout << "White's turn:" << endl;
+    } else {
+      cout << "Black's turn:" << endl;
+    }
+    cin >> move;
+    if (move == "resign") {
+      gameOver = true;
+      break;
+    }
+    clearScreen();
+    cout << "White's Perspective    Black's Perspective" << endl;
+    for (int i = 0; i < n; i++) {
+      for (int j = 0; j < n; j++) {
+        Block *cell = board[i][j];
+        string unicode = Helper::getUniCodes(cell->c, cell->m);
+        bool white_square = (i + j) % 2 == 0;
+        string bg = white_square ? WHITE_BG : BLACK_BG;
+        cout << bg << BOLD << " " << unicode << " " << RESET;
+      }
+      for (int j = 0; j < n; j++) {
+        Block *cell = board[i][j];
+        string unicode = Helper::getUniCodes(cell->c, cell->m);
+        bool white_square = (i + j) % 2 == 0;
+        string bg = white_square ? WHITE_BG : BLACK_BG;
+        cout << bg << BOLD << " " << unicode << " " << RESET;
+      }
+      cout << endl;
+    }
+  }
+
+  return 0;
+}
